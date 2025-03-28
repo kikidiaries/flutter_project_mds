@@ -20,7 +20,7 @@ class _ArticlesViewState extends State<ArticlesView> {
     _articlesFuture = fetchArticles();
   }
 
-  // Fonction pour récupérer les articles depuis l'API
+  //récupérer les articles depuis l'API
   Future<List<Article>> fetchArticles() async {
     final response = await http.get(Uri.parse('https://jsonplaceholder.typicode.com/posts'));
 
@@ -42,13 +42,13 @@ class _ArticlesViewState extends State<ArticlesView> {
         future: _articlesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            // Affiche un indicateur de chargement pendant la récupération des données
+            //Affiche un indicateur de chargement pendant la récupération des données
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            // Affiche un message d'erreur en cas de problème
+            //Affiche un message d'erreur en cas de problème
             return Center(child: Text('Erreur : ${snapshot.error}'));
           } else if (snapshot.hasData) {
-            // Affiche la liste des articles une fois les données récupérées
+            //Affiche la liste des articles une fois les données récupérées
             List<Article> articles = snapshot.data!;
             return ListView.builder(
               itemCount: articles.length,
@@ -56,7 +56,7 @@ class _ArticlesViewState extends State<ArticlesView> {
                 return ListTile(
                   title: Text(articles[index].title),
                   onTap: () {
-                    // Navigue vers la page de détails lors du tap sur un article
+                    //Navigue vers la page de détails lors du tap sur un article
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -68,7 +68,7 @@ class _ArticlesViewState extends State<ArticlesView> {
               },
             );
           } else {
-            // Cas où il n'y a pas de données
+            //Cas où il n'y a pas de données
             return const Center(child: Text('Aucun article disponible'));
           }
         },

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/article.dart';
+import '../models/article.dart';  
 
+//Le Widget reçoit un objet "Article" en paramètre et l'affiche 
 class ArticleDetailView extends StatelessWidget {
-  final Article article;
+  final Article article; //Article à afficher
 
   const ArticleDetailView({super.key, required this.article});
 
@@ -12,9 +13,12 @@ class ArticleDetailView extends StatelessWidget {
       appBar: AppBar(
         title: Text(article.title),
       ),
+
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Text(article.body),
+        padding: const EdgeInsets.all(16.0), 
+        child: Text(
+          article.body,
+        ),
       ),
     );
   }

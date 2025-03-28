@@ -1,7 +1,6 @@
-// On importe le package Flutter qui contient tout ce qu’il faut pour construire l’interface utilisateur
 import 'package:flutter/material.dart';
 
-// On importera la page "À Propos" qu'on va créer dans le dossier views
+//On importe les vues
 import 'views/apropos_view.dart';
 import 'views/contact_view.dart';
 import 'views/articles_view.dart';
@@ -89,6 +88,18 @@ class HomePage extends StatelessWidget {
                 Navigator.pushNamed(context, '/articles');
               },
             ),
+
+            ListTile(
+              leading: const Icon(Icons.brightness_6),
+              title: const Text('Changer le thème'),
+              onTap: () {
+                themeNotifier.value = themeNotifier.value == ThemeMode.light
+                    ? ThemeMode.dark
+                    : ThemeMode.light;
+                Navigator.pop(context); // Ferme le Drawer après le clic
+              },
+            ),
+
           ],
         ),
       ),

@@ -1,5 +1,4 @@
-//Ici on définit une classe pour représenter les articles récuperés depuis l'API 
-// on pensera aussi à créer une vue pour afficher les titres des articles dans une ListView
+//Représenter les articles récuperés depuis l'API 
 
 class Article {
   final int userId;
@@ -14,7 +13,7 @@ class Article {
     required this.body,
   });
 
-  // Méthode pour créer une instance d'Article à partir d'une map JSON
+  //Créer une instance d'Article à partir d'une map JSON
   factory Article.fromJson(Map<String, dynamic> json) {
     return Article(
       userId: json['userId'],

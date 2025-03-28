@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../utils/form_storage.dart';
+import 'messages_view.dart';
 
-// Définition du widget Stateful pour la page de contact
+///Enregistrement local des messages
 class ContactView extends StatefulWidget {
   const ContactView({super.key});
 
@@ -8,66 +10,76 @@ class ContactView extends StatefulWidget {
   State<ContactView> createState() => _ContactViewState();
 }
 
-// État associé au widget ContactView
 class _ContactViewState extends State<ContactView> {
-  // Clé globale pour identifier le formulaire et faciliter sa validation
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>(); //Clé pour identifier le formulaire et le valider
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _messageController = TextEditingController();
 
-  // Contrôleurs pour récupérer le texte saisi dans les champs de texte
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _messageController = TextEditingController();
-
-  // Fonction appelée lors de l'appui sur le bouton "Envoyer"
+  //Valide le formulaire, enregistre les données et affiche un dialog de confirmation
   void _sendMessage() {
-    // Vérifie si le formulaire est valide
     if (_formKey.currentState!.validate()) {
-      // Si valide, affiche une SnackBar de confirmation avec le nom de l'utilisateur
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Message envoyé par ${_nameController.text} !')),
-      );
+      final contactData = {
+        'nom': _nameController.text,
+        'email': _emailController.text,
+        'message': _messageController.text,
+      };
 
-      // Réinitialise les champs du formulaire après l'envoi
-      _formKey.currentState!.reset();
+      FormStorage.addMessage(contactData); // Stockage local (via shared_preferences ou autre)
+
+      _formKey.currentState!.reset(); // Réinitialise le formulaire
+
+      // Affiche une boîte de dialogue de confirmation
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Message enregistré'),
+          content: const Text('Voulez-vous voir la liste des messages enregistrés ?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(), // Ferme la boîte
+              child: const Text('Non'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Ferme d'abord le dialog
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MessagesView()),
+                ); // Navigue vers la liste des messages
+              },
+              child: const Text('Oui'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // AppBar affichant le titre de la page
-      appBar: AppBar(
-        title: const Text('Contact'),
-      ),
-      // Corps de la page avec un padding pour l'esthétique
+      appBar: AppBar(title: const Text('Contact')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        // Formulaire contenant les champs de saisie et le bouton d'envoi
         child: Form(
-          key: _formKey, // Association de la clé au formulaire pour la validation
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Nom'),
-              // Champ de saisie pour le nom
               TextFormField(
-                controller: _nameController, // Associe le contrôleur au champ
-                validator: (value) {
-                  // Validation : vérifie si le champ n'est pas vide
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer votre nom';
-                  }
-                  return null;
-                },
+                controller: _nameController,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Veuillez entrer votre nom' : null,
               ),
-              const SizedBox(height: 10), // Espacement entre les champs
+              const SizedBox(height: 10),
+
               const Text('Email'),
-              // Champ de saisie pour l'email
               TextFormField(
                 controller: _emailController,
-                keyboardType: TextInputType.emailAddress, // Clavier adapté pour l'email
+                keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  // Validation : vérifie si le champ n'est pas vide et si l'email est valide
                   if (value == null || value.isEmpty) {
                     return 'Veuillez entrer votre email';
                   } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
@@ -77,24 +89,20 @@ class _ContactViewState extends State<ContactView> {
                 },
               ),
               const SizedBox(height: 10),
+
               const Text('Message'),
-              // Champ de saisie pour le message
               TextFormField(
                 controller: _messageController,
-                maxLines: 4, // Permet d'avoir plusieurs lignes pour le message
-                validator: (value) {
-                  // Validation : vérifie si le champ n'est pas vide
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer votre message';
-                  }
-                  return null;
-                },
+                maxLines: 4,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Veuillez entrer votre message' : null,
               ),
               const SizedBox(height: 20),
-              // Bouton centré pour envoyer le formulaire
+
+              // Bouton d'envoi centré
               Center(
                 child: ElevatedButton(
-                  onPressed: _sendMessage, // Appelle la fonction _sendMessage lors de l'appui
+                  onPressed: _sendMessage,
                   child: const Text('Envoyer'),
                 ),
               ),
