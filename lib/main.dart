@@ -1,39 +1,39 @@
 import 'package:flutter/material.dart';
 
-
-//On importe les vues
+//On importe les vues (pages de l'application)
 import 'views/apropos_view.dart';
 import 'views/contact_view.dart';
 import 'views/articles_view.dart';
 
+//Utilisation de ValueNotifier pour gérer le changement de thème (clair/sombre)
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
-// La fonction principale qui démarre l’application
+// Fonction qui démarre l’application
 void main() {
-  runApp(const MyApp()); // runApp lance le widget principal de notre app
+  runApp(const MyApp()); // runApp lance le widget principal
 }
 
-// Le widget principal de l’application (stateless = il ne change pas d’état)
+//Le widget principal de l’application (stateless = il ne change pas d’état)
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeNotifier,
+      valueListenable: themeNotifier, //On écoute les changements de thème
       builder: (context, currentMode, _) {
         return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'Projet Flutter',
-          theme: ThemeData.light(),
-          darkTheme: ThemeData.dark(),
-          themeMode: currentMode,
-          initialRoute: '/',
+          debugShowCheckedModeBanner: false, //Cache le banner de debug
+          title: 'Projet Flutter', //Titre global de l'application
+          theme: ThemeData.light(), //Thème clair par défaut
+          darkTheme: ThemeData.dark(), //Thème sombre
+          themeMode: currentMode, // Applique le thème actuel (clair ou sombre)
+          initialRoute: '/', // Définir la route de départ (ici la page d'accueil)
           routes: {
-            '/': (context) => const HomePage(),
-            '/apropos': (context) => const AproposView(),
-            '/contact': (context) => const ContactView(),
-            '/articles': (context) => const ArticlesView(),
+            '/': (context) => const HomePage(), // Route pour la page d'accueil
+            '/apropos': (context) => const AproposView(), // Page "À propos"
+            '/contact': (context) => const ContactView(), // Page de contact
+            '/articles': (context) => const ArticlesView(), // Page des articles
           },
         );
       },
@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-//Ce widget représente la page d’accueil (page principale)
+// Ce widget représente la page d’accueil (page principale)
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -74,8 +74,8 @@ class HomePage extends StatelessWidget {
             ),
 
             ListTile(
-              leading: const Icon(Icons.contact_mail),
-              title: const Text('Contact'),
+              leading: const Icon(Icons.contact_mail), // Icône de contact
+              title: const Text('Contact'), // Texte du bouton
               onTap: () {
                 Navigator.pop(context); // Ferme le Drawer
                 Navigator.pushNamed(context, '/contact'); // Va sur la page Contact
@@ -83,17 +83,18 @@ class HomePage extends StatelessWidget {
             ),
 
             ListTile(
-              leading: const Icon(Icons.article),
-              title: const Text('Articles'),
+              leading: const Icon(Icons.article), // Icône d'articles
+              title: const Text('Articles'), // Texte du bouton
               onTap: () {
-                Navigator.pushNamed(context, '/articles');
+                Navigator.pushNamed(context, '/articles'); // Va sur la page Articles
               },
             ),
 
             ListTile(
-              leading: const Icon(Icons.brightness_6),
-              title: const Text('Changer le thème'),
+              leading: const Icon(Icons.brightness_6), //Icône pour changer le thème
+              title: const Text('Changer le thème'), //exte du bouton
               onTap: () {
+                //Change le thème actuel entre clair et sombre
                 themeNotifier.value = themeNotifier.value == ThemeMode.light
                     ? ThemeMode.dark
                     : ThemeMode.light;
