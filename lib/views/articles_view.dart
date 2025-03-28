@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../models/article.dart';
+import '../controllers/article_controller.dart';
 import 'article_detail_view.dart';
 
 class ArticlesView extends StatefulWidget {
@@ -12,67 +11,109 @@ class ArticlesView extends StatefulWidget {
 }
 
 class _ArticlesViewState extends State<ArticlesView> {
-  late Future<List<Article>> _articlesFuture;
+  final ArticleController _controller = ArticleController(); //gère la récupération API
+  List<Article> _articles = []; //liste des articles affichés
+  int _currentPage = 1; //page actuelle
+  final int _limit = 10; //articles par page
+  bool _isLoading = false; //indique un chargement en cours
+  bool _hasMore = true; //true s’il y a encore des articles
 
   @override
   void initState() {
     super.initState();
-    _articlesFuture = fetchArticles();
+    _fetchArticles(); //chargement initial
   }
 
-  //récupérer les articles depuis l'API
-  Future<List<Article>> fetchArticles() async {
-    final response = await http.get(Uri.parse('https://jsonplaceholder.typicode.com/posts'));
+  Future<void> _fetchArticles() async {
+    setState(() => _isLoading = true); //active le loader
+    try {
+      final newArticles = await _controller.fetchArticles(
+        page: _currentPage,
+        limit: _limit,
+      );
+      setState(() {
+        _articles = newArticles;
+        _hasMore = newArticles.length == _limit; //s’il y a potentiellement plus
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur de chargement : $e")), //affiche l’erreur
+      );
+    }
+  }
 
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      return jsonResponse.map((article) => Article.fromJson(article)).toList();
-    } else {
-      throw Exception('Échec du chargement des articles');
+  void _goToNextPage() {
+    if (_hasMore) {
+      setState(() => _currentPage++);
+      _fetchArticles(); //page suivante
+    }
+  }
+
+  void _goToPreviousPage() {
+    if (_currentPage > 1) {
+      setState(() => _currentPage--);
+      _fetchArticles(); //page précédente
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Articles'),
-      ),
-      body: FutureBuilder<List<Article>>(
-        future: _articlesFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            //Affiche un indicateur de chargement pendant la récupération des données
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            //Affiche un message d'erreur en cas de problème
-            return Center(child: Text('Erreur : ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            //Affiche la liste des articles une fois les données récupérées
-            List<Article> articles = snapshot.data!;
-            return ListView.builder(
-              itemCount: articles.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(articles[index].title),
-                  onTap: () {
-                    //Navigue vers la page de détails lors du tap sur un article
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ArticleDetailView(article: articles[index]),
-                      ),
-                    );
-                  },
-                );
-              },
-            );
-          } else {
-            //Cas où il n'y a pas de données
-            return const Center(child: Text('Aucun article disponible'));
-          }
-        },
-      ),
+      appBar: AppBar(title: const Text('Articles')), //titre de la page
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator()) //loader
+          : Column(
+              children: [
+                Expanded(
+                  child: _articles.isEmpty
+                      ? const Center(child: Text('Aucun article disponible.')) //si vide
+                      : ListView.builder(
+                          itemCount: _articles.length,
+                          itemBuilder: (context, index) {
+                            final article = _articles[index];
+                            return ListTile(
+                              title: Text(article.title), //titre
+                              subtitle: Text(article.body.length > 50
+                                  ? '${article.body.substring(0, 50)}...'
+                                  : article.body), //aperçu du contenu
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ArticleDetailView(
+                                      article: article,
+                                    ),
+                                  ),
+                                ); //détail de l’article
+                              },
+                            );
+                          },
+                        ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: _currentPage > 1 ? _goToPreviousPage : null,
+                      child: const Text("← Précédent"), //bouton retour
+                    ),
+                    Text("Page $_currentPage"), //page affichée
+                    TextButton(
+                      onPressed: _hasMore ? _goToNextPage : null,
+                      child: const Text("Suivant →"), //bouton suivant
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }

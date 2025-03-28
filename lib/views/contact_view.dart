@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../utils/form_storage.dart';
+import '../controllers/contact_controller.dart';
 import 'messages_view.dart';
 
-///Enregistrement local des messages
 class ContactView extends StatefulWidget {
   const ContactView({super.key});
 
@@ -11,44 +10,45 @@ class ContactView extends StatefulWidget {
 }
 
 class _ContactViewState extends State<ContactView> {
-  final _formKey = GlobalKey<FormState>(); //Clé pour identifier le formulaire et le valider
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _messageController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final ContactController _controller = ContactController();
 
-  //Valide le formulaire, enregistre les données et affiche un dialog de confirmation
-  void _sendMessage() {
+  String _nom = '';
+  String _email = '';
+  String _message = '';
+
+  void _sendMessage() async {
     if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
       final contactData = {
-        'nom': _nameController.text,
-        'email': _emailController.text,
-        'message': _messageController.text,
+        'nom': _nom,
+        'email': _email,
+        'message': _message,
       };
 
-      FormStorage.addMessage(contactData); // Stockage local (via shared_preferences ou autre)
+      await _controller.saveMessage(contactData);
+      _formKey.currentState!.reset();
 
-      _formKey.currentState!.reset(); // Réinitialise le formulaire
-
-      // Affiche une boîte de dialogue de confirmation
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Message enregistré'),
-          content: const Text('Voulez-vous voir la liste des messages enregistrés ?'),
+        builder: (_) => AlertDialog(
+          title: const Text("Message enregistré"),
+          content: const Text("Voulez-vous voir vos messages ?"),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(), // Ferme la boîte
-              child: const Text('Non'),
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Non"),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Ferme d'abord le dialog
+                Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MessagesView()),
-                ); // Navigue vers la liste des messages
+                  MaterialPageRoute(builder: (_) => const MessagesView()),
+                );
               },
-              child: const Text('Oui'),
+              child: const Text("Oui"),
             ),
           ],
         ),
@@ -59,57 +59,42 @@ class _ContactViewState extends State<ContactView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Contact')),
+      appBar: AppBar(title: const Text("Contact")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Nom'),
               TextFormField(
-                controller: _nameController,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Veuillez entrer votre nom' : null,
+                decoration: const InputDecoration(labelText: 'Nom'),
+                validator: (value) => value == null || value.isEmpty ? 'Veuillez entrer votre nom' : null,
+                onSaved: (value) => _nom = value ?? '',
               ),
               const SizedBox(height: 10),
-
-              const Text('Email'),
               TextFormField(
-                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer votre email';
-                  } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                    return 'Veuillez entrer un email valide';
-                  }
+                  if (value == null || value.isEmpty) return 'Veuillez entrer votre email';
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) return 'Email invalide';
                   return null;
                 },
+                onSaved: (value) => _email = value ?? '',
               ),
               const SizedBox(height: 10),
-
-              const Text('Message'),
               TextFormField(
-                controller: _messageController,
+                decoration: const InputDecoration(labelText: 'Message'),
                 maxLines: 4,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Veuillez entrer votre message' : null,
+                validator: (value) => value == null || value.isEmpty ? 'Veuillez entrer votre message' : null,
+                onSaved: (value) => _message = value ?? '',
               ),
               const SizedBox(height: 20),
-
-              // Bouton d'envoi centré
-              Center(
-                child: ElevatedButton(
-                  onPressed: _sendMessage,
-                  child: const Text('Envoyer'),
-                ),
-              ),
+              ElevatedButton(onPressed: _sendMessage, child: const Text("Envoyer")),
             ],
           ),
         ),
       ),
     );
   }
-}
+} 

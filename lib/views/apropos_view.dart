@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-///Contenu statique, non interactif.
+///Contenu statique et non dynamique ==> ne change pas au fil du temps ou lors du rechargement de l'application
 class AproposView extends StatelessWidget {
   const AproposView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold(                                 //structure de base de mon application
       appBar: AppBar(
         title: const Text('À Propos'),
       ),
